@@ -98,7 +98,7 @@ def dashboard():
 # Vacation Routes
 @app.route('/apply', methods=['GET', 'POST'])
 @login_required
-def apply():
+def apply_vacation():  # 함수명 수정
     username = session['username']
     
     if request.method == 'POST':
@@ -116,7 +116,7 @@ def apply():
         if result['success']:
             return redirect(url_for('dashboard'))
         
-        return redirect(url_for('apply'))
+        return redirect(url_for('apply_vacation'))
     
     return render_template('apply.html')
 
@@ -180,7 +180,7 @@ def notifications():
 # Admin Routes
 @app.route('/admin')
 @admin_required
-def admin():
+def admin_dashboard():  # 함수명 수정
     users = user_service.get_all_users()
     return render_template('admin_dashboard.html', users=users)
 
@@ -200,7 +200,7 @@ def add_user():
         flash(result['message'], result['type'])
         
         if result['success']:
-            return redirect(url_for('admin'))
+            return redirect(url_for('admin_dashboard'))
 
     return render_template('add_user.html')
 
@@ -222,7 +222,7 @@ def edit_user(user_id):
         flash(result['message'], result['type'])
         
         if result['success']:
-            return redirect(url_for('admin'))
+            return redirect(url_for('admin_dashboard'))
     
     return render_template('edit_user.html', user=user)
 
@@ -232,7 +232,7 @@ def edit_user(user_id):
 def delete_user(user_id):
     result = user_service.delete_user(user_id)
     flash(result['message'], result['type'])
-    return redirect(url_for('admin'))
+    return redirect(url_for('admin_dashboard'))
 
 
 @app.route('/admin/reset_password/<int:user_id>', methods=['POST'])
@@ -240,7 +240,19 @@ def delete_user(user_id):
 def reset_password(user_id):
     result = user_service.reset_password(user_id)
     flash(result['message'], result['type'])
-    return redirect(url_for('admin'))
+    return redirect(url_for('admin_dashboard'))
+
+
+# Error Handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('errors/404.html'), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('errors/500.html'), 500
 
 
 if __name__ == '__main__':
